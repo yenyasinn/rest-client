@@ -31,3 +31,31 @@ interface RestClientInterface
     public function delete(string $uri, array $uriVariables = [], array $headers = []): void;
 }
 ```
+
+### Usage
+
+#### Get object
+
+```php
+class ApiModel {
+    private int $id;
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+}
+
+...
+
+/** @var ApiModel $model */
+$model = $restClient->getForObject('/api', ApiModel::class);
+
+print $model->getId() . "\n";
+```
+
