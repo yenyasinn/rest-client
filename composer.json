@@ -1,0 +1,32 @@
+{
+    "name": "pavel.danilin/rest-client",
+    "description": "REST client for PHP 7.4+",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "RestClient\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Pavel",
+            "email": "pavel.k.danilin@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4.0",
+        "ext-json": "*",
+        "psr/http-client": "1.0.*",
+        "psr/log": "1.1.*",
+        "guzzlehttp/guzzle": "7.4.*",
+        "symfony/serializer": "v5.4.*",
+        "symfony/property-access": "v5.4.*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "0.12.99"
+    },
+    "scripts": {
+        "test": "php -d memory_limit=4G ./vendor/bin/phpstan analyse -c phpstan.neon"
+    }
+}
