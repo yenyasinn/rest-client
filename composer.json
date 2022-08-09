@@ -6,7 +6,8 @@
     "autoload": {
         "psr-4": {
             "RestClient\\": "src/"
-        }
+        },
+		"files": ["src/helpers.php"]
     },
     "authors": [
         {

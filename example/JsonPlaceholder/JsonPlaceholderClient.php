@@ -1,23 +1,21 @@
 <?php declare(strict_types=1);
 
-use Psr\Http\Client\ClientInterface;
-use RestClient\RestClient;
-use RestClient\Serialization\DefaultJsonSerializer;
-use RestClient\Serialization\SerializerInterface;
+use RestClient\Configuration\DefaultConfiguration;
+use RestClient\JsonRestClient;
 
 /**
  * @see https://jsonplaceholder.typicode.com/
  */
-class JsonPlaceholderClient extends RestClient
+class JsonPlaceholderClient extends JsonRestClient
 {
     public function __construct()
     {
-        parent::__construct($this->createHttpClient(), $this->createSerializer());
+        parent::__construct(DefaultConfiguration::create('https://jsonplaceholder.typicode.com'));
     }
 
     public function getPosts(): array
     {
-        return $this->getForList('/posts', BlogPost::class);
+        return $this->getForObject('/posts', \RestClient\Helpers\asList(BlogPost::class));
     }
 
     public function getPost(int $id): ?BlogPost
@@ -29,28 +27,16 @@ class JsonPlaceholderClient extends RestClient
 
     public function getComments(int $postId): array
     {
-        return $this->getForList('/posts/:post_id/comments', BlogPost::class, ['post_id' => $postId]);
+        return $this->getForObject('/posts/:post_id/comments', \RestClient\Helpers\asList(BlogPost::class), ['post_id' => $postId]);
     }
 
     public function getComments2(int $postId): array
     {
-        return $this->getForList('/comments', BlogPost::class, ['postId' => $postId]);
+        return $this->getForObject('/comments', \RestClient\Helpers\asList(BlogPost::class), ['postId' => $postId]);
     }
 
     public function deletePost(int $postId): void
     {
         $this->delete('/posts/:post_id', ['post_id' => $postId]);
-    }
-
-    private function createHttpClient(): ClientInterface
-    {
-        return new \GuzzleHttp\Client([
-            'base_uri' => 'https://jsonplaceholder.typicode.com/',
-        ]);
-    }
-
-    private function createSerializer(): SerializerInterface
-    {
-        return new DefaultJsonSerializer();
     }
 }

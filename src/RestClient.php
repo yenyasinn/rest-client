@@ -14,6 +14,10 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
+use function RestClient\Helpers\ctxRequestGetPayload;
+use function RestClient\Helpers\ctxRequestHasPayload;
+use function RestClient\Helpers\ctxResponseAsList;
+use function RestClient\Helpers\ctxResponseGetType;
 
 class RestClient implements RestClientInterface, RequestInterceptorInterface
 {
@@ -25,6 +29,11 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
     private ResponseErrorHandlerInterface $responseErrorHandler;
     private SerializerInterface $serializer;
 
+    /**
+     * @param HttpClientInterface $httpClient
+     * @param SerializerInterface $serializer
+     * @param array<RequestInterceptorInterface> $interceptors
+     */
     public function __construct(HttpClientInterface $httpClient, SerializerInterface $serializer, array $interceptors = [])
     {
         $this->httpClient = $httpClient;
@@ -67,22 +76,24 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
     /**
      * @throws ClientExceptionInterface
      */
-    public function intercept(RequestInterface $request, RequestExecutionInterface $execution): ResponseInterface
+    public function intercept(RequestInterface $request, ContextInterface $context, RequestExecutionInterface $execution): ResponseInterface
     {
-        if ($execution->getContext()->has('request_value') && $request->getBody()->isWritable()) {
-            $requestBody = $this->serializer->serialize($execution->getContext()->get('request_value'));
-            $execution->getContext()->putReadOnly('request_body', $requestBody);
+        if (ctxRequestHasPayload($context)) {
+            if (!$request->getBody()->isWritable()) {
+                throw new RestClientException('Could not write a request body');
+            }
+            $requestBody = $this->serializer->serialize(ctxRequestGetPayload($context));
             $request->getBody()->write($requestBody);
+            $context->set(ContextInterface::REQUEST_BODY, $requestBody);
         }
-        return $this->processResponse($this->httpClient->sendRequest($request), $execution);
+        return $this->processResponse($this->httpClient->sendRequest($request), $context);
     }
 
-    public function exchange(RequestInterface $request, ?RequestContext $context = null): ResponseInterface
+    public function exchange(RequestInterface $request, ?ContextInterface $context = null): ResponseInterface
     {
         $stack = new StackInterceptor($this, $this->interceptors);
-        $execution = new DefaultRequestExecution($stack, $context);
         try {
-            return $stack->next()->intercept($request, $execution);
+            return $stack->next()->intercept($request, $context ?? new Context(), new RequestExecution($stack));
         } catch (ClientExceptionInterface $exception) {
             throw RestClientException::fromClientException($exception);
         }
@@ -95,14 +106,9 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('GET', $uri, $uriVariables, $headers));
     }
 
-    public function getForObject(string $uri, string $responseType, array $uriVariables = [], array $headers = []): ?object
+    public function getForObject(string $uri, string $responseType, array $uriVariables = [], array $headers = [])
     {
-        return $this->exchangeForObject('GET', $uri, $responseType, null, $uriVariables, $headers);
-    }
-
-    public function getForList(string $uri, string $responseType, array $uriVariables = [], array $headers = []): array
-    {
-        return $this->exchangeForList('GET', $uri, $responseType, null, $uriVariables, $headers);
+        return $this->doExchange('GET', $uri, $responseType, null, $uriVariables, $headers);
     }
 
     // POST
@@ -112,14 +118,9 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('POST', $uri, $uriVariables, $headers));
     }
 
-    public function postForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): ?object
+    public function postForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
     {
-        return $this->exchangeForObject('POST', $uri, $responseType, $body, $uriVariables, $headers);
-    }
-
-    public function postForList(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array
-    {
-        return $this->exchangeForList('POST', $uri, $responseType, $body, $uriVariables, $headers);
+        return $this->doExchange('POST', $uri, $responseType, $body, $uriVariables, $headers);
     }
 
     // PUT
@@ -131,12 +132,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
     public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): ?object
     {
-        return $this->exchangeForObject('PUT', $uri, $responseType, $body, $uriVariables, $headers);
-    }
-
-    public function putForList(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array
-    {
-        return $this->exchangeForList('PUT', $uri, $responseType, $body, $uriVariables, $headers);
+        return $this->doExchange('PUT', $uri, $responseType, $body, $uriVariables, $headers);
     }
 
     // PATCH
@@ -148,12 +144,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
     public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): ?object
     {
-        return $this->exchangeForObject('PATCH', $uri, $responseType, $body, $uriVariables, $headers);
-    }
-
-    public function patchForList(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array
-    {
-        return $this->exchangeForList('PATCH', $uri, $responseType, $body, $uriVariables, $headers);
+        return $this->doExchange('PATCH', $uri, $responseType, $body, $uriVariables, $headers);
     }
 
     // DELETE
@@ -165,68 +156,75 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
     // COMMON
 
-    private function exchangeForObject(string $method, string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): ?object
+    /**
+     * @param string $method
+     * @param string $uri
+     * @param string $responseType
+     * @param object|null $body
+     * @param array $uriVariables
+     * @param array $headers
+     * @return array|object|null
+     */
+    private function doExchange(string $method, string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
     {
+        // Response types:
+        // A single object  :    'App\Model\User'
+        // A list of objects:    'App\Model\User[]'
+        $responseAsList = \substr($responseType, -2) === '[]';
+        if ($responseAsList) {
+            $responseType = \rtrim($responseType, '[]');
+        }
+
         if (!\class_exists($responseType)) {
             throw new ResponseTypeNotFoundException($responseType);
         }
-        $context = new RequestContext([
-            'response_type' => $responseType
-        ]);
-        if ($body !== null) {
-            $context->put('request_value', $body);
+
+        $context = (new Context())
+            ->set(ContextInterface::RESPONSE_TYPE, $responseType)
+            ->set('response_as_list', $responseAsList);
+
+        if (null !== $body) {
+            $context->set(ContextInterface::REQUEST_PAYLOAD, $body);
         }
+
         $this->exchange($this->createRequest($method, $uri, $uriVariables, $headers), $context);
-        return $context->get('response_value');
+
+        if ($responseAsList) {
+            return $context->get('response_payload', []);
+        }
+        return $context->get('response_payload');
     }
 
-    private function exchangeForList(string $method, string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array
-    {
-        if (!\class_exists($responseType)) {
-            throw new ResponseTypeNotFoundException($responseType);
-        }
-        $context = new RequestContext([
-            'response_type' => $responseType,
-            'response_as_list' => true,
-        ]);
-        if ($body !== null) {
-            $context->put('request_value', $body);
-        }
-        $this->exchange($this->createRequest($method, $uri, $uriVariables, $headers), $context);
-        return $context->get('response_value', []);
-    }
-
-    private function processResponse(ResponseInterface $response, RequestExecutionInterface $execution): ResponseInterface
+    private function processResponse(ResponseInterface $response, ContextInterface $context): ResponseInterface
     {
         if ($this->responseErrorHandler->hasError($response)) {
             $this->responseErrorHandler->handleError($response);
         }
 
         $responseBody = '';
-        if ($this->hasBody($response, $execution)) {
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // !!! ===============================  IMPORTANT NOTE   ================================ !!!
-            // !!! A stream can be read only once.                                                    !!!
-            // !!! Should be used RequestExecutionInterface::getResponseBody() to get a response body !!!
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if ($this->responseHasBody($response)) {
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // !!! ========================  IMPORTANT NOTE   ============================ !!!
+            // !!! A stream can be read only once.                                         !!!
+            // !!! Should be used RequestContext::getResponseBody() to get a response body !!!
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             $responseBody = $response->getBody()->getContents();
         }
 
-        if (!empty($responseBody)) {
-            $execution->getContext()->putReadOnly('response_body', $responseBody);
-            $responseType = $execution->getContext()->get('response_type');
+        if (!empty($responseBody) && $responseBody !== '{}') {
+            $context->set(ContextInterface::RESPONSE_BODY, $responseBody);
             $responseValue = $this->serializer->deserialize(
                 $responseBody,
-                $responseType,
-                ['as_list' => $execution->getContext()->get('response_as_list', false)]
+                ctxResponseGetType($context),
+                ['as_list' => ctxResponseAsList($context)]
             );
-            $execution->getContext()->put('response_value', $responseValue);
+            $context->set('response_payload', $responseValue);
         }
 
         return $response;
     }
 
-    private function hasBody(ResponseInterface $response, RequestExecutionInterface $execution): bool
+    private function responseHasBody(ResponseInterface $response): bool
     {
         $statusCode = $response->getStatusCode();
         return $statusCode !== 204 &&
@@ -234,8 +232,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
             $statusCode !== 100 &&
             $statusCode !== 101 &&
             $statusCode !== 102 &&
-            $statusCode !== 103 &&
-            $execution->getContext()->has('response_type'); // <- We explicitly define a response type
+            $statusCode !== 103;
     }
 
     private function createUri(string $uri, array $uriVariables): UriInterface

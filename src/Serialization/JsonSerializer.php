@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface as SymfonySerializerInterface;
 
-class DefaultJsonSerializer implements SerializerInterface
+class JsonSerializer implements SerializerInterface
 {
     public const PROP_SKIP_NULL_VALUES = 'skip_null_values';
 
@@ -18,11 +18,11 @@ class DefaultJsonSerializer implements SerializerInterface
     private array $properties;
     private ?NameConverterInterface $nameConverter;
     private ?SymfonySerializerInterface $innerSerializer;
-    /** @var array<DefaultObjectMapper> */
+    /** @var array<AbstractObjectMapper> */
     private array $objectMappers;
 
     /**
-     * @param array<DefaultObjectMapper> $objectMappers
+     * @param array<AbstractObjectMapper> $objectMappers
      * @param array $properties
      * @param NameConverterInterface|null $nameConverter
      */

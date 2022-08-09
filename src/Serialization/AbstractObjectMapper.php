@@ -5,7 +5,7 @@ namespace RestClient\Serialization;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-abstract class DefaultObjectMapper implements ObjectMapperInterface, NormalizerInterface, DenormalizerInterface
+abstract class AbstractObjectMapper implements ObjectMapperInterface, NormalizerInterface, DenormalizerInterface
 {
     private string $expectedType;
     /** @var array<string> */
@@ -22,7 +22,7 @@ abstract class DefaultObjectMapper implements ObjectMapperInterface, NormalizerI
         if ($type === $this->expectedType) {
             if (!empty($this->requiredKeys)) {
                 $missedKeys = $this->requireKeys($data, $this->requiredKeys);
-                throw new \RuntimeException('Missed required keys: [' . \implode(',', $missedKeys) . ']');
+                throw new \RuntimeException(\sprintf('Missed required keys: [%s]', \implode(',', $missedKeys)));
             }
             return true;
         }
