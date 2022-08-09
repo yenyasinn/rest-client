@@ -22,7 +22,9 @@ abstract class AbstractObjectMapper implements ObjectMapperInterface, Normalizer
         if ($type === $this->expectedType) {
             if (!empty($this->requiredKeys)) {
                 $missedKeys = $this->requireKeys($data, $this->requiredKeys);
-                throw new \RuntimeException(\sprintf('Missed required keys: [%s]', \implode(',', $missedKeys)));
+                if (!empty($missedKeys)) {
+                    throw new \RuntimeException(\sprintf('Missed required keys: [%s]', \implode(',', $missedKeys)));
+                }
             }
             return true;
         }

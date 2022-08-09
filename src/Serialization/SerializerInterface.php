@@ -4,6 +4,8 @@ namespace RestClient\Serialization;
 
 interface SerializerInterface
 {
+    public const AS_LIST = 'as_list';
+
     /**
      * @param object|array $data
      * @param array $context

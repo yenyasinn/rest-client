@@ -60,7 +60,7 @@ class JsonSerializer implements SerializerInterface
         if (!\class_exists($type)) {
             throw new \RuntimeException('Class not found');
         }
-        if (($context['as_list'] ?? false) === true) {
+        if (($context[SerializerInterface::AS_LIST] ?? false) === true) {
             $type .= '[]';
         }
         return $this->getInnerSerializer()->deserialize($data, $type, 'json', $context);
@@ -72,18 +72,23 @@ class JsonSerializer implements SerializerInterface
             // Create default serializer
             $mappers = $this->objectMappers;
             // A fallback normalizer
-            $mappers[] = new ObjectNormalizer(
-                null,
-                $this->nameConverter,
-                null,
-                null,
-                null,
-                null,
-                [AbstractObjectNormalizer::SKIP_NULL_VALUES => $this->properties[self::PROP_SKIP_NULL_VALUES] ?? false]
-            );
+            $mappers[] = $this->createObjectNormalizer();
             $mappers[] = new ArrayDenormalizer();
             $this->innerSerializer = new Serializer($mappers, [new JsonEncoder()]);
         }
         return $this->innerSerializer;
+    }
+
+    private function createObjectNormalizer(): ObjectNormalizer
+    {
+        return new ObjectNormalizer(
+            null,
+            $this->nameConverter,
+            null,
+            null,
+            null,
+            null,
+            [AbstractObjectNormalizer::SKIP_NULL_VALUES => $this->properties[self::PROP_SKIP_NULL_VALUES] ?? false]
+        );
     }
 }

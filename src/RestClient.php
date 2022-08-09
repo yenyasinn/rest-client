@@ -130,7 +130,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('PUT', $uri, $uriVariables, $headers));
     }
 
-    public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): ?object
+    public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
     {
         return $this->doExchange('PUT', $uri, $responseType, $body, $uriVariables, $headers);
     }
@@ -142,7 +142,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('PATCH', $uri, $uriVariables, $headers));
     }
 
-    public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): ?object
+    public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
     {
         return $this->doExchange('PATCH', $uri, $responseType, $body, $uriVariables, $headers);
     }
@@ -203,11 +203,11 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
         $responseBody = '';
         if ($this->responseHasBody($response)) {
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // !!! ========================  IMPORTANT NOTE   ============================ !!!
-            // !!! A stream can be read only once.                                         !!!
-            // !!! Should be used RequestContext::getResponseBody() to get a response body !!!
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // !!! =========================  IMPORTANT NOTE   ============================== !!!
+            // !!! A stream can be read only once.                                            !!!
+            // !!! Should be used ContextInterface::get(RESPONSE_BODY) to get a response body !!!
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             $responseBody = $response->getBody()->getContents();
         }
 
@@ -216,7 +216,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
             $responseValue = $this->serializer->deserialize(
                 $responseBody,
                 ctxResponseGetType($context),
-                ['as_list' => ctxResponseAsList($context)]
+                [SerializerInterface::AS_LIST => ctxResponseAsList($context)]
             );
             $context->set('response_payload', $responseValue);
         }
