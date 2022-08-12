@@ -32,4 +32,17 @@ class Context implements ContextInterface
     {
         return $this->values[$key] ?? $default;
     }
+
+    public function all(): array
+    {
+        return $this->values;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getKeys(): array
+    {
+        return \array_keys($this->values);
+    }
 }

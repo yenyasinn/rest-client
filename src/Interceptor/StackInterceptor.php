@@ -4,7 +4,8 @@ namespace RestClient\Interceptor;
 
 final class StackInterceptor implements StackInterface
 {
-    private \SplStack $stack; // TODO: replace by array
+    private int $offset;
+    private array $stack;
     private RequestInterceptorInterface $coreInterceptor;
 
     /**
@@ -13,20 +14,17 @@ final class StackInterceptor implements StackInterface
      */
     public function __construct(RequestInterceptorInterface $coreInterceptor, array $interceptors = [])
     {
+        $this->offset = 0;
         $this->coreInterceptor = $coreInterceptor;
-        $this->stack = new \SplStack();
-        foreach ($interceptors as $interceptor) {
-            $this->stack->push($interceptor);
-        }
-        $this->stack->rewind();
+        $this->stack = $interceptors;
     }
 
     public function next(): RequestInterceptorInterface
     {
-        if (null === $next = $this->stack->current()) {
+        if (null === $next = ($this->stack[$this->offset] ?? null)) {
             return $this->coreInterceptor;
         }
-        $this->stack->next();
+        $this->offset++;
         return $next;
     }
 }

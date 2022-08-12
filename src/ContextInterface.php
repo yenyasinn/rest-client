@@ -48,4 +48,10 @@ interface ContextInterface
      * @return string|int|float|bool|array|object|null
      */
     public function get(string $key, $default = null);
+    public function all(): array;
+
+    /**
+     * @return array<string>
+     */
+    public function getKeys(): array;
 }

@@ -15,7 +15,7 @@ use function RestClient\Helpers\ctx_response_has_body;
 class LogRequestInterceptor implements RequestInterceptorInterface
 {
     private LoggerInterface $logger;
-    private ?string $level;
+    private string $level;
     private int $bodyTruncSize;
 
     public function __construct(LoggerInterface $logger, string $level = LogLevel::INFO, int $bodyTruncSize = 0)

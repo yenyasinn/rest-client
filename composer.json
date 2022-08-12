@@ -1,20 +1,26 @@
 {
     "name": "paveldanilin/rest-client",
     "description": "REST client for PHP 7.4+",
+	"keywords": ["rest-client", "json-rest-client", "interceptor", "psr-7", "psr-18"],
     "type": "library",
     "license": "MIT",
+	"authors": [
+		{
+			"name": "Pavel",
+			"email": "pavel.k.danilin@gmail.com"
+		}
+	],
     "autoload": {
         "psr-4": {
             "RestClient\\": "src/"
         },
 		"files": ["src/helpers.php"]
     },
-    "authors": [
-        {
-            "name": "Pavel",
-            "email": "pavel.k.danilin@gmail.com"
-        }
-    ],
+	"autoload-dev": {
+		"psr-4": {
+			"RestClient\\Tests\\": "tests"
+		}
+	},
     "require": {
         "php": ">=7.4.0",
         "ext-json": "*",
@@ -25,9 +31,13 @@
         "symfony/property-access": "v5.4.*"
     },
     "require-dev": {
-        "phpstan/phpstan": "0.12.99"
-    },
+        "phpstan/phpstan": "0.12.99",
+		"phpunit/phpunit": "9.5.*"
+	},
     "scripts": {
-        "test": "php -d memory_limit=4G ./vendor/bin/phpstan analyse -c phpstan.neon"
+        "test": [
+			"php -d memory_limit=4G ./vendor/bin/phpstan analyse -c phpstan.neon",
+			"php ./vendor/bin/phpunit"
+		]
     }
 }
