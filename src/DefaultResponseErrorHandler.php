@@ -2,35 +2,35 @@
 
 namespace RestClient;
 
+use RestClient\Exception\HttpClientErrorException;
+use RestClient\Exception\HttpServerErrorException;
 use RestClient\Exception\RestClientResponseException;
-use RestClient\Serialization\ResponseBodyDecoderInterface;
-use RestClient\Serialization\JsonResponseBodyDecoder;
 use Psr\Http\Message\ResponseInterface;
+use RestClient\Exception\UnknownHttpStatusCodeException;
 
 class DefaultResponseErrorHandler implements ResponseErrorHandlerInterface
 {
-    /** @var array<ResponseBodyDecoderInterface> */
-    private array $decoders;
-    /** @var callable|null */
-    private $bodyConvertFunction;
+    private ?string $targetType;
+    private ?ResponseExtractorInterface $responseExtractor;
 
-    public function __construct(?callable $bodyConvertFunction = null, array $decoders = [])
+    public function __construct()
     {
-        $this->decoders = $decoders;
-        if (empty($this->decoders)) {
-            $this->setDecoders([new JsonResponseBodyDecoder()]);
-        }
-        $this->setBodyConvertFunction($bodyConvertFunction);
+        $this->setTargetType(null);
+        $this->setResponseExtractor(null);
     }
 
-    public function setBodyConvertFunction(?callable $bodyConvertFunction): void
+    /**
+     * @param string|null $targetType A full qualified class name or 'array' to convert to array.
+     * @return void
+     */
+    public function setTargetType(?string $targetType): void
     {
-        $this->bodyConvertFunction = $bodyConvertFunction;
+        $this->targetType = $targetType;
     }
 
-    public function setDecoders(array $decoders): void
+    public function setResponseExtractor(?ResponseExtractorInterface $responseExtractor): void
     {
-        $this->decoders = $decoders;
+        $this->responseExtractor = $responseExtractor;
     }
 
     public function hasError(ResponseInterface $response): bool
@@ -46,34 +46,52 @@ class DefaultResponseErrorHandler implements ResponseErrorHandlerInterface
      */
     public function handleError(ResponseInterface $response): void
     {
-        $status = $response->getStatusCode();
+        if (empty($this->targetType) || null === $this->responseExtractor) {
+            $responseData = new ResponseData(null, $response->getBody()->getContents());
+        } else {
+            $responseData = $this->responseExtractor->extractData($response, $this->targetType);
+        }
+        $statusCode = $response->getStatusCode();
         $phrase = $response->getReasonPhrase();
         $headers = $response->getHeaders();
-        $body = $response->getBody()->getContents();
-        $bodyDecoder = null;
+        $message = $this->getErrorMessage($statusCode, $phrase, $responseData->getResponseBody());
 
-        if (!empty($body)) {
-            $bodyDecoder = $this->getBodyDecoder($response);
+        if ($statusCode >= 400 && $statusCode <= 499) {
+            throw new HttpClientErrorException(
+                $message,
+                $statusCode,
+                $phrase,
+                $responseData->getResponseBody(),
+                $headers,
+                $responseData->getResponseData()
+            );
         }
 
-        throw new RestClientResponseException(
+        if ($statusCode >= 500 && $statusCode <= 599) {
+            throw new HttpServerErrorException(
+                $message,
+                $statusCode,
+                $phrase,
+                $responseData->getResponseBody(),
+                $headers,
+                $responseData->getResponseData()
+            );
+        }
+
+        throw new UnknownHttpStatusCodeException(
+            $this->getErrorMessage($statusCode, $phrase, $responseData->getResponseBody()),
+            $statusCode,
             $phrase,
-            $status,
-            $phrase,
-            $body,
+            $responseData->getResponseBody(),
             $headers,
-            $bodyDecoder,
-            $this->bodyConvertFunction
+            $responseData->getResponseData()
         );
     }
 
-    private function getBodyDecoder(ResponseInterface $response): ?ResponseBodyDecoderInterface
+    private function getErrorMessage(int $statusCode, string $phrase, string $body): string
     {
-        foreach ($this->decoders as $decoder) {
-            if ($decoder->canDecode($response)) {
-                return $decoder;
-            }
-        }
-        return null;
+        $preface = $statusCode . ' ' . $phrase . ': ';
+        $content = empty($body) ? '[no body]' : '[' . $body . ']';
+        return $preface . $content;
     }
 }

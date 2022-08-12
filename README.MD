@@ -34,6 +34,6 @@ print $model->getId() . "\n";
 
 ```php
 /** @var array<ApiModel> $models */
-$models = $restClient->getForObject('/api/models', \RestClient\Helpers\asList(ApiModel::class));
+$models = $restClient->getForObject('/api/models', \RestClient\Helpers\as_list(ApiModel::class));
 ```
 

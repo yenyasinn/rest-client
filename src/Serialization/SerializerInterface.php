@@ -2,22 +2,18 @@
 
 namespace RestClient\Serialization;
 
+use RestClient\Exception\UnknownTypeException;
+
 interface SerializerInterface
 {
-    public const AS_LIST = 'as_list';
-
-    /**
-     * @param object|array $data
-     * @param array $context
-     * @return string
-     */
-    public function serialize($data, array $context = []): string;
+    public function serialize(object $object): string;
 
     /**
      * @param string $data
-     * @param string $type
-     * @param array $context
+     * @param string $targetType
+     * @param bool $asList
      * @return object|array
+     * @throws UnknownTypeException
      */
-    public function deserialize(string $data, string $type, array $context = []);
+    public function deserialize(string $data, string $targetType, bool $asList);
 }

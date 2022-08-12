@@ -3,6 +3,7 @@
 require 'vendor/autoload.php';
 require 'Model/BlogPost.php';
 require 'Model/Comment.php';
+require 'Model/CommentNormalizer.php';
 require 'JsonPlaceholderClient.php';
 
 $jsonPlaceholder = new JsonPlaceholderClient();

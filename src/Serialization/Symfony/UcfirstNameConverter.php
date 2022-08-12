@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace RestClient\Serialization;
+namespace RestClient\Serialization\Symfony;
 
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
@@ -13,6 +13,6 @@ class UcfirstNameConverter implements NameConverterInterface
 
     public function denormalize(string $propertyName): string
     {
-        return $propertyName;
+        return \lcfirst($propertyName);
     }
 }

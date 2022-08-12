@@ -8,11 +8,11 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use function RestClient\Helpers\ctxRequestGetBody;
-use function RestClient\Helpers\ctxResponseGetBody;
-use function RestClient\Helpers\ctxResponseHasBody;
+use function RestClient\Helpers\ctx_request_get_body;
+use function RestClient\Helpers\ctx_response_get_body;
+use function RestClient\Helpers\ctx_response_has_body;
 
-final class LogRequestInterceptor implements RequestInterceptorInterface
+class LogRequestInterceptor implements RequestInterceptorInterface
 {
     private LoggerInterface $logger;
     private ?string $level;
@@ -29,21 +29,35 @@ final class LogRequestInterceptor implements RequestInterceptorInterface
     {
         $response = $execution->execute($request, $context);
 
-        $this->logger->log($this->level, \sprintf('[%s] URI: %s', $request->getMethod(), $request->getUri()), [
-            'request_headers' => $request->getHeaders(),
-            'request_body' => ctxRequestGetBody($context),
-            'response_headers' => $response->getHeaders(),
-            'response_body' => $this->extractResponseBody($context),
-        ]);
+        $this->logger->log(
+            $this->level,
+            $this->createLogMessage($request, $context),
+            $this->createLogContext($request, $response, $context),
+        );
 
         return $response;
     }
 
+    protected function createLogMessage(RequestInterface $request, ContextInterface $context): string
+    {
+        return \sprintf('[%s] URI: %s', $request->getMethod(), $request->getUri());
+    }
+
+    protected function createLogContext(RequestInterface $request, ResponseInterface $response, ContextInterface $context): array
+    {
+        return[
+            'request_headers' => $request->getHeaders(),
+            'request_body' => ctx_request_get_body($context),
+            'response_headers' => $response->getHeaders(),
+            'response_body' => $this->extractResponseBody($context),
+        ];
+    }
+
     private function extractResponseBody(ContextInterface $context): ?string
     {
-        if (!ctxResponseHasBody($context)) {
+        if (!ctx_response_has_body($context)) {
             return null;
         }
-        return ctxResponseGetBody($context, $this->bodyTruncSize);
+        return ctx_response_get_body($context, $this->bodyTruncSize);
     }
 }

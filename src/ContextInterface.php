@@ -5,24 +5,30 @@ namespace RestClient;
 interface ContextInterface
 {
     /**
-     * A caller side payload object (object)
+     * A caller side request payload object. [object|null]
+     * If it is defined at the context, will be serialized and written to a Http request body.
      */
-    public const REQUEST_PAYLOAD = 'request_payload';
+    public const REQUEST_MODEL = 'request_model';
 
     /**
-     * A serialized Http request body. (string)
+     * A serialized Http request body. [string|null]
      */
     public const REQUEST_BODY = 'request_body';
 
     /**
-     * A Http response body. (string)
+     * A Http response body. [string|null]
      */
     public const RESPONSE_BODY = 'response_body';
 
     /**
-     * A full qualified class name. (string)
+     * A full qualified class name. [string]
      */
     public const RESPONSE_TYPE = 'response_type';
+
+    /**
+     * A caller side response payload object. [object|null]
+     */
+    public const RESPONSE_MODEL = 'response_model';
 
 
     /**

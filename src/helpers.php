@@ -2,6 +2,7 @@
 
 namespace RestClient\Helpers;
 
+use Psr\Http\Message\ResponseInterface;
 use RestClient\ContextInterface;
 
 function asList(string $className): string
@@ -9,37 +10,46 @@ function asList(string $className): string
     return $className . '[]';
 }
 
-function ctxRequestHasPayload(ContextInterface $context): bool
+function response_has_message_body(ResponseInterface $response): bool
 {
-    return $context->has(ContextInterface::REQUEST_PAYLOAD);
+    $noBodyStatuses = [100, 101, 102, 103, 204, 304];
+    if (\in_array($response->getStatusCode(), $noBodyStatuses, true)) {
+        return false;
+    }
+    return 0 !== $response->getBody()->getSize();
 }
 
-function ctxRequestGetPayload(ContextInterface $context): ?object
+function ctx_request_has_model(ContextInterface $context): bool
 {
-    return $context->get(ContextInterface::REQUEST_PAYLOAD);
+    return $context->has(ContextInterface::REQUEST_MODEL);
 }
 
-function ctxResponseAsList(ContextInterface $context): bool
+function ctx_request_get_model(ContextInterface $context): ?object
+{
+    return $context->get(ContextInterface::REQUEST_MODEL);
+}
+
+function ctx_response_as_list(ContextInterface $context): bool
 {
     return $context->get('response_as_list', false);
 }
 
-function ctxResponseGetType(ContextInterface $context): string
+function ctx_response_get_type(ContextInterface $context): string
 {
     return $context->get(ContextInterface::RESPONSE_TYPE, '');
 }
 
-function ctxRequestGetBody(ContextInterface $context): ?string
+function ctx_request_get_body(ContextInterface $context): ?string
 {
     return $context->get(ContextInterface::REQUEST_BODY);
 }
 
-function ctxResponseHasBody(ContextInterface $context): bool
+function ctx_response_has_body(ContextInterface $context): bool
 {
     return $context->has(ContextInterface::RESPONSE_BODY);
 }
 
-function ctxResponseGetBody(ContextInterface $context, int $truncSize = 0): ?string
+function ctx_response_get_body(ContextInterface $context, int $truncSize = 0): ?string
 {
     $body = $context->get(ContextInterface::RESPONSE_BODY);
     if (null === $body || $truncSize <= 0) {

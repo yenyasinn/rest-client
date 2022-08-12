@@ -2,31 +2,31 @@
 
 namespace RestClient\Exception;
 
-use RestClient\Serialization\ResponseBodyDecoderInterface;
-
 class RestClientResponseException extends RestClientException
 {
     private int $statusCode;
-    private string $responsePhrase;
+    private string $phrase;
     private string $responseBody;
-    private array $responseHeaders;
-    private ?ResponseBodyDecoderInterface $bodyDecoder;
-    private ?array $decodedBody;
-    /** @var callable|null  */
-    private $converterFunction;
-    private ?object $convertedBody;
+    private array $headers;
+    /** @var mixed */
+    private $data;
 
-    public function __construct(string $message, int $statusCode, string $responsePhrase, string $responseBody, array $responseHeaders, ?ResponseBodyDecoderInterface $bodyDecoder, ?callable $converterFunction)
+    /**
+     * @param string $message
+     * @param int $statusCode
+     * @param string $phrase
+     * @param string $responseBody
+     * @param array $headers
+     * @param mixed $data
+     */
+    public function __construct(string $message, int $statusCode, string $phrase, string $responseBody, array $headers, $data)
     {
         parent::__construct($message);
         $this->statusCode = $statusCode;
-        $this->responsePhrase = $responsePhrase;
+        $this->phrase = $phrase;
         $this->responseBody = $responseBody;
-        $this->responseHeaders = $responseHeaders;
-        $this->bodyDecoder = $bodyDecoder;
-        $this->converterFunction = $converterFunction;
-        $this->decodedBody = null;
-        $this->convertedBody = null;
+        $this->headers = $headers;
+        $this->data = $data;
     }
 
     public function getStatusCode(): int
@@ -34,9 +34,9 @@ class RestClientResponseException extends RestClientException
         return $this->statusCode;
     }
 
-    public function getResponsePhrase(): string
+    public function getPhrase(): string
     {
-        return $this->responsePhrase;
+        return $this->phrase;
     }
 
     public function getResponseBody(): string
@@ -44,25 +44,16 @@ class RestClientResponseException extends RestClientException
         return $this->responseBody;
     }
 
-    public function getResponseHeaders(): array
+    public function getHeaders(): array
     {
-        return $this->responseHeaders;
+        return $this->headers;
     }
 
-    public function getDecodedBody(): ?array
+    /**
+     * @return mixed
+     */
+    public function getData()
     {
-        if ((null === $this->decodedBody) && null !== $this->bodyDecoder) {
-            $this->decodedBody = $this->bodyDecoder->decode($this->responseBody);
-        }
-        return $this->decodedBody;
-    }
-
-    public function getConvertedBody(): ?object
-    {
-        if (null === $this->convertedBody && null !== $this->converterFunction && null !== $this->getDecodedBody()) {
-            $f = $this->converterFunction;
-            $this->convertedBody = $f($this->getDecodedBody(), $this);
-        }
-        return $this->convertedBody;
+        return $this->data;
     }
 }
