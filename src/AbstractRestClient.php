@@ -9,6 +9,8 @@ use RestClient\Serialization\SerializerInterface;
 
 abstract class AbstractRestClient extends RestClient
 {
+    private ConfigurationInterface $configuration;
+
     /**
      * @param ConfigurationInterface $configuration
      * @param array<RequestInterceptorInterface> $interceptors
@@ -22,8 +24,14 @@ abstract class AbstractRestClient extends RestClient
             $interceptors,
             $headers
         );
+        $this->configuration = $configuration;
     }
 
     abstract protected function createHttpClient(ConfigurationInterface $configuration): ClientInterface;
     abstract protected function createSerializer(ConfigurationInterface $configuration): SerializerInterface;
+
+    public function getConfiguration(): ConfigurationInterface
+    {
+        return $this->configuration;
+    }
 }
