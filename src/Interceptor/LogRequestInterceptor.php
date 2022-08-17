@@ -27,7 +27,13 @@ class LogRequestInterceptor implements RequestInterceptorInterface
 
     public function intercept(RequestInterface $request, ContextInterface $context, RequestExecutionInterface $execution): ResponseInterface
     {
+        // [Before request].
+        // For example at this place we can alter request headers.
+
         $response = $execution->execute($request, $context);
+
+        // [After request]
+        // For example at this place we can log response.
 
         $this->logger->log(
             $this->level,

@@ -9,7 +9,7 @@ final class NullSerializer implements SerializerInterface
         return '';
     }
 
-    public function deserialize(string $data, string $targetType, bool $asList)
+    public function deserialize(string $data, string $targetType, bool $asList): \stdClass
     {
         return new \stdClass();
     }
