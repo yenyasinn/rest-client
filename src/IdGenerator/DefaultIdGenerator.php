@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace RestClient;
+namespace RestClient\IdGenerator;
 
 class DefaultIdGenerator implements IdGeneratorInterface
 {

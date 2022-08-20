@@ -1,17 +1,20 @@
 # RestClient
 
-RestClient is an interface representing the main entry point for performing REST requests.
+RestClient is [an interface](src/RestClientInterface.php) representing the main entry point for performing REST requests.
 
 ### Examples
 
-#### Create a new client
+#### Create a new REST client
 
 For simplicity, we are using a Guzzle HTTP client, but you are free to use any PSR-18 compliant HTTP client.
 
 ```php
+// PSR-18 HTTP client
 $httpClient = new GuzzleHttp\Client([
     'base_uri' => 'https://animechan.vercel.app',
 ]);
+
+// Serializer
 $serializer = new \RestClient\Serialization\Symfony\JsonSymfonySerializer();
 
 $rest = new \RestClient\RestClient($httpClient, $serializer);
@@ -94,3 +97,11 @@ Use case of interceptor:
 - Changing the request URL address
 
 Take a look at [Log request interceptor](src/Interceptor/LogRequestInterceptor.php)
+
+
+Set interceptors
+```php
+$rest->setInterceptors([
+    new \RestClient\Interceptor\RetryInterceptor(),
+]);
+```

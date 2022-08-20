@@ -1,6 +1,6 @@
 <?php
 
-namespace RestClient;
+namespace RestClient\IdGenerator;
 
 interface IdGeneratorInterface
 {

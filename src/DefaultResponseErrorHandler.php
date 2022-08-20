@@ -63,7 +63,8 @@ class DefaultResponseErrorHandler implements ResponseErrorHandlerInterface
                 $phrase,
                 $responseData->getResponseBody(),
                 $headers,
-                $responseData->getResponseData()
+                $responseData->getResponseData(),
+                $response->getProtocolVersion(),
             );
         }
 
@@ -74,7 +75,8 @@ class DefaultResponseErrorHandler implements ResponseErrorHandlerInterface
                 $phrase,
                 $responseData->getResponseBody(),
                 $headers,
-                $responseData->getResponseData()
+                $responseData->getResponseData(),
+                $response->getProtocolVersion(),
             );
         }
 

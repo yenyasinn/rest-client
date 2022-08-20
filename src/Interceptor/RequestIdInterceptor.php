@@ -5,7 +5,7 @@ namespace RestClient\Interceptor;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RestClient\ContextInterface;
-use RestClient\IdGeneratorInterface;
+use RestClient\IdGenerator\IdGeneratorInterface;
 use RestClient\RequestExecutionInterface;
 
 class RequestIdInterceptor implements RequestInterceptorInterface

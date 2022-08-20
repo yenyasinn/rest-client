@@ -4,6 +4,7 @@ namespace RestClient\Exception;
 
 class RestClientResponseException extends RestClientException
 {
+    private string $protocolVersion;
     private int $statusCode;
     private string $phrase;
     private string $responseBody;
@@ -18,15 +19,22 @@ class RestClientResponseException extends RestClientException
      * @param string $responseBody
      * @param array $headers
      * @param mixed $data
+     * @param string $protocolVersion
      */
-    public function __construct(string $message, int $statusCode, string $phrase, string $responseBody, array $headers, $data)
+    public function __construct(string $message, int $statusCode, string $phrase, string $responseBody, array $headers, $data, string $protocolVersion = '1.1')
     {
         parent::__construct($message);
+        $this->protocolVersion = $protocolVersion;
         $this->statusCode = $statusCode;
         $this->phrase = $phrase;
         $this->responseBody = $responseBody;
         $this->headers = $headers;
         $this->data = $data;
+    }
+
+    public function getProtocolVersion(): string
+    {
+        return $this->protocolVersion;
     }
 
     public function getStatusCode(): int

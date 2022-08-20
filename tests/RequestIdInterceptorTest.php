@@ -7,7 +7,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RestClient\Context;
 use RestClient\ContextInterface;
-use RestClient\DefaultIdGenerator;
+use RestClient\IdGenerator\DefaultIdGenerator;
 use RestClient\Interceptor\AddHeaderInterceptor;
 use RestClient\Interceptor\RequestIdInterceptor;
 use RestClient\Interceptor\StackInterceptor;
