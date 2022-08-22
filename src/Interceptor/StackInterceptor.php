@@ -24,7 +24,7 @@ final class StackInterceptor implements StackInterface
         if (null === $next = ($this->stack[$this->offset] ?? null)) {
             return $this->coreInterceptor;
         }
-        $this->offset++;
+        ++$this->offset;
         return $next;
     }
 }

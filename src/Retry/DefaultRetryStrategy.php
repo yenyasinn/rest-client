@@ -42,9 +42,13 @@ class DefaultRetryStrategy implements RetryStrategyInterface
             return false;
         }
 
+        if (!$this->isMethodIdempotent($request)) {
+            return false;
+        }
+
         $this->attempts++;
 
-        return $this->isMethodIdempotent($request);
+        return true;
     }
 
     public function getRetryInterval(RequestInterface $request, ContextInterface $context, ResponseInterface $response): int
@@ -92,10 +96,9 @@ class DefaultRetryStrategy implements RetryStrategyInterface
     private function getIntervalFromString(string $dateTime): int
     {
         try {
-            $dt = new \DateTime($dateTime);
+            return (new \DateTime($dateTime))->getTimestamp() - \time();
         } catch (\Exception $exception) {
             return -1;
         }
-        return $dt->getTimestamp() - \time();
     }
 }

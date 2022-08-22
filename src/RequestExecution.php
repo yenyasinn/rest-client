@@ -19,4 +19,9 @@ final class RequestExecution implements RequestExecutionInterface
     {
         return $this->stack->next()->intercept($request, $context, $this);
     }
+
+    public function __clone()
+    {
+        $this->stack = clone $this->stack;
+    }
 }
