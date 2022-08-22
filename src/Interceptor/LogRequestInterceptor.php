@@ -3,6 +3,8 @@
 namespace RestClient\Interceptor;
 
 use RestClient\ContextInterface;
+use RestClient\Exception\RestClientResponseException;
+use RestClient\ImmutableResponse;
 use RestClient\RequestExecutionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -14,9 +16,9 @@ use function RestClient\Helpers\ctx_response_has_body;
 
 class LogRequestInterceptor implements RequestInterceptorInterface
 {
-    private LoggerInterface $logger;
-    private string $level;
-    private int $bodyTruncSize;
+    protected LoggerInterface $logger;
+    protected string $level;
+    protected int $bodyTruncSize;
 
     public function __construct(LoggerInterface $logger, string $level = LogLevel::INFO, int $bodyTruncSize = 0)
     {
@@ -27,36 +29,74 @@ class LogRequestInterceptor implements RequestInterceptorInterface
 
     public function intercept(RequestInterface $request, ContextInterface $context, RequestExecutionInterface $execution): ResponseInterface
     {
-        // [Before request].
-        // For example at this place we can alter request headers.
+        $this->logBeforeRequest($request, $context);
 
-        $response = $execution->execute($request, $context);
-
-        // [After request]
-        // For example at this place we can log response.
-
-        $this->logger->log(
-            $this->level,
-            $this->createLogMessage($request, $context),
-            $this->createLogContext($request, $response, $context),
-        );
-
-        return $response;
+        try {
+            $response = $execution->execute($request, $context);
+            $this->logAfterRequest($request, $context, $response);
+            return $response;
+        } catch (RestClientResponseException $exception) {
+            $this->logException($request, $context, $exception);
+            throw $exception;
+        }
     }
 
-    protected function createLogMessage(RequestInterface $request, ContextInterface $context): string
+    /**
+     * Default format: "[beforeRequest] [<HTTP_METHOD>] URI: <REQUEST_URI>"
+     *
+     * @param RequestInterface $request
+     * @param ContextInterface $context
+     * @return void
+     */
+    protected function logBeforeRequest(RequestInterface $request, ContextInterface $context): void
     {
-        return \sprintf('[%s] URI: %s', $request->getMethod(), $request->getUri());
+        $message = \sprintf('[beforeRequest] [%s] URI: %s', $request->getMethod(), $request->getUri());
+        $this->logger->log($this->level, $message);
     }
 
-    protected function createLogContext(RequestInterface $request, ResponseInterface $response, ContextInterface $context): array
+    /**
+     * Default format: "[afterRequest] [<HTTP_METHOD>] URI: <REQUEST_URI> [<RESPONSE_STATUS_CODE>]"
+     *
+     * @param RequestInterface $request
+     * @param ContextInterface $context
+     * @param ResponseInterface $response
+     * @return void
+     */
+    protected function logAfterRequest(RequestInterface $request, ContextInterface $context, ResponseInterface $response): void
     {
-        return[
+        $message = \sprintf('[afterRequest] [%s] URI: %s [%s]',
+            $request->getMethod(),
+            $request->getUri(),
+            $response->getStatusCode());
+        $this->logger->log($this->level, $message, [
             'request_headers' => $request->getHeaders(),
             'request_body' => ctx_request_get_body($context),
             'response_headers' => $response->getHeaders(),
             'response_body' => $this->extractResponseBody($context),
-        ];
+        ]);
+    }
+
+    /**
+     * Default format: "[exceptionRequest] [<HTTP_METHOD>] URI: <REQUEST_URI> [<RESPONSE_STATUS_CODE>] <EXCEPTION_MESSAGE>"
+     *
+     * @param RequestInterface $request
+     * @param ContextInterface $context
+     * @param RestClientResponseException $exception
+     * @return void
+     */
+    protected function logException(RequestInterface $request, ContextInterface $context, RestClientResponseException $exception): void
+    {
+        $exceptionClass = \get_class($exception);
+        $response = ImmutableResponse::fromRestClientResponseException($exception);
+        $message = \sprintf('[exceptionRequest] [%s] URI: %s [%s] %s',
+            $request->getMethod(),
+            $request->getUri(),
+            $response->getStatusCode(),
+            $exception->getMessage());
+        $this->logger->error($message, [
+            'exception_class' => $exceptionClass,
+            'response_headers' => $exception->getHeaders(),
+        ]);
     }
 
     private function extractResponseBody(ContextInterface $context): ?string

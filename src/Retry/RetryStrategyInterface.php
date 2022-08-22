@@ -12,6 +12,7 @@ interface RetryStrategyInterface
 
     /**
      * Must return interval in milliseconds.
+     * REST client uses this value to wait before retrying request.
      *
      * @param RequestInterface $request
      * @param ContextInterface $context

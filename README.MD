@@ -2,9 +2,9 @@
 
 RestClient is [an interface](src/RestClientInterface.php) representing the main entry point for performing REST requests.
 
-### Examples
+## Examples
 
-#### Create a new REST client
+### Create a new REST client
 
 For simplicity, we are using a Guzzle HTTP client, but you are free to use any PSR-18 compliant HTTP client.
 
@@ -17,11 +17,11 @@ $httpClient = new GuzzleHttp\Client([
 // Serializer
 $serializer = new \RestClient\Serialization\Symfony\JsonSymfonySerializer();
 
-$rest = new \RestClient\RestClient($httpClient, $serializer);
+$restClient = new \RestClient\RestClient($httpClient, $serializer);
 ```
 
 
-#### Define an application response model
+### Define an application response model
 ```php
 class AnimeQuote
 {
@@ -62,13 +62,13 @@ class AnimeQuote
 ```
 
 
-#### Get an object
+### Get an object
 
 Take a look at [the example](example/anime_quote.php).
 
 ```php
 /** @var AnimeQuote|null $quote */
-$quote = $rest->getForObject('/api/random', AnimeQuote::class);
+$quote = $restClient->getForObject('/api/random', AnimeQuote::class);
 
 print "------------------------------------------\n";
 print 'Anime:     ' . $quote->getAnime() . "\n";
@@ -78,17 +78,17 @@ print "------------------------------------------\n";
 ```
 
 
-#### Get a list of objects
+### Get a list of objects
 
 Take a look at [the example](example/JsonPlaceholder/print_blog_posts.php).
 
 ```php
 /** @var array<ApiModel> $models */
-$models = $rest->getForObject('/api/models', \RestClient\Helpers\asList(ApiModel::class));
+$models = $restClient->getForObject('/api/models', \RestClient\Helpers\asList(ApiModel::class));
 ```
 
 
-#### Intercept request
+### Intercept request
 
 Use case of interceptor:
 - Request header modification
@@ -98,10 +98,20 @@ Use case of interceptor:
 
 Take a look at [Log request interceptor](src/Interceptor/LogRequestInterceptor.php)
 
+```php
+interface RequestInterceptorInterface
+{
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function intercept(RequestInterface $request, ContextInterface $context, RequestExecutionInterface $execution): ResponseInterface;
+}
+```
 
 Set interceptors
 ```php
-$rest->setInterceptors([
+$restClient->setInterceptors([
     new \RestClient\Interceptor\RetryInterceptor(),
+    new \RestClient\Interceptor\LogRequestInterceptor($logger),
 ]);
 ```

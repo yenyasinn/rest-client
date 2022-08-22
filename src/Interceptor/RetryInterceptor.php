@@ -24,11 +24,7 @@ class RetryInterceptor implements RequestInterceptorInterface
     {
         $tempExecution = clone $execution;
 
-        try {
-            $response = $execution->execute($request, $context);
-        } catch (RestClientResponseException $exception) {
-            $response = ImmutableResponse::fromRestClientResponseException($exception);
-        }
+        $response = $this->safeExecute($request, $context, $execution);
 
         for (;;) {
             if (false === $this->retryStrategy->shouldRetry($request, $context, $response)) {
@@ -41,15 +37,20 @@ class RetryInterceptor implements RequestInterceptorInterface
                 \usleep($this->toMicroseconds($intervalMs));
             }
 
-            $ex = clone $tempExecution;
-            try {
-                $response = $ex->execute($request, $context);
-            } catch (RestClientResponseException $exception) {
-                $response = ImmutableResponse::fromRestClientResponseException($exception);
-            }
+            $response = $this->safeExecute($request, $context, $tempExecution);
         }
 
         return $response;
+    }
+
+    private function safeExecute(RequestInterface $request, ContextInterface $context, RequestExecutionInterface $execution): ResponseInterface
+    {
+        $isolatedExecution = clone $execution;
+        try {
+            return $isolatedExecution->execute($request, $context);
+        } catch (RestClientResponseException $exception) {
+            return ImmutableResponse::fromRestClientResponseException($exception);
+        }
     }
 
     private function toMicroseconds(int $ms): int
