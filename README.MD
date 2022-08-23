@@ -96,7 +96,16 @@ Use case of interceptor:
 - Request denial based on certain request parameters
 - Changing the request URL address
 
-Take a look at [Log request interceptor](src/Interceptor/LogRequestInterceptor.php)
+
+Out of the box you can use following interceptors:
+* [Log request](src/Interceptor/LogRequestInterceptor.php)
+* [Retry](src/Interceptor/RetryInterceptor.php)
+* [Add header](src/Interceptor/AddHeaderInterceptor.php)
+* [Callable](src/Interceptor/CallableInterceptor.php)
+
+
+Did not find a right interceptor?
+To create a new one you should implement the following interface:
 
 ```php
 interface RequestInterceptorInterface
@@ -111,7 +120,8 @@ interface RequestInterceptorInterface
 Set interceptors
 ```php
 $restClient->setInterceptors([
-    new \RestClient\Interceptor\RetryInterceptor(),
-    new \RestClient\Interceptor\LogRequestInterceptor($logger),
+    new \RestClient\Interceptor\RetryInterceptor(), // <- Retry request in case of [429] or [503] response status
+    new \RestClient\Interceptor\RequestIdInterceptor(), // <- Add Request-Id header (uuid v4)
+    new \RestClient\Interceptor\LogRequestInterceptor($logger), // <- Log before/after and exception
 ]);
 ```

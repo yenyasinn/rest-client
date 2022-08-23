@@ -51,7 +51,9 @@ class LogRequestInterceptor implements RequestInterceptorInterface
     protected function logBeforeRequest(RequestInterface $request, ContextInterface $context): void
     {
         $message = \sprintf('[beforeRequest] [%s] URI: %s', $request->getMethod(), $request->getUri());
-        $this->logger->log($this->level, $message);
+        $this->logger->log($this->level, $message, [
+            'request_headers' => $request->getHeaders(),
+        ]);
     }
 
     /**
@@ -95,6 +97,7 @@ class LogRequestInterceptor implements RequestInterceptorInterface
             $exception->getMessage());
         $this->logger->error($message, [
             'exception_class' => $exceptionClass,
+            'request_headers' => $request->getHeaders(),
             'response_headers' => $exception->getHeaders(),
         ]);
     }

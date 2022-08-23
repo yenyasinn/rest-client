@@ -5,6 +5,7 @@ namespace RestClient\Interceptor;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RestClient\ContextInterface;
+use RestClient\IdGenerator\DefaultIdGenerator;
 use RestClient\IdGenerator\IdGeneratorInterface;
 use RestClient\RequestExecutionInterface;
 
@@ -13,9 +14,9 @@ class RequestIdInterceptor implements RequestInterceptorInterface
     private string $headerName;
     private IdGeneratorInterface $idGenerator;
 
-    public function __construct(IdGeneratorInterface $idGenerator, string $headerName = 'Request-ID')
+    public function __construct(string $headerName = 'Request-ID', ?IdGeneratorInterface $idGenerator = null)
     {
-        $this->idGenerator = $idGenerator;
+        $this->idGenerator = $idGenerator ?? new DefaultIdGenerator();
         $this->headerName = $headerName;
     }
 

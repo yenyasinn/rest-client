@@ -7,7 +7,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RestClient\Context;
 use RestClient\ContextInterface;
-use RestClient\IdGenerator\DefaultIdGenerator;
 use RestClient\Interceptor\AddHeaderInterceptor;
 use RestClient\Interceptor\RequestIdInterceptor;
 use RestClient\Interceptor\StackInterceptor;
@@ -28,7 +27,7 @@ class RequestIdInterceptorTest extends TestCase
             }
             return $response;
         }), [
-           new RequestIdInterceptor(new DefaultIdGenerator()),
+           new RequestIdInterceptor(),
         ]);
 
         $response = $stack->next()->intercept(
