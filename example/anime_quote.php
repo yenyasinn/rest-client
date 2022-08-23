@@ -2,6 +2,15 @@
 
 require 'vendor/autoload.php';
 
+// We are going to call a public API: 'https://animechan.vercel.app/api/random' which returns a random quote as JSON.
+// Example:
+// {
+//	anime: 'Shiki',
+//	character: 'Nao Yasumori',
+//	quote: 'My new family is just so kind. It\'s almost if there\'s been some kind of mistake... like, I\'ll have to pay back for all this happiness later on.'
+//}
+
+// First of all let's create a response model
 class AnimeQuote
 {
     private string $anime = '';
@@ -39,9 +48,14 @@ class AnimeQuote
     }
 }
 
+// Create REST client
+
+// PSR-18 HTTP client
 $httpClient = new GuzzleHttp\Client([
     'base_uri' => 'https://animechan.vercel.app',
 ]);
+
+// Serializer (helps us to convert JSON -> PHP class)
 $serializer = new \RestClient\Serialization\Symfony\JsonSymfonySerializer();
 
 $rest = new \RestClient\RestClient($httpClient, $serializer);
