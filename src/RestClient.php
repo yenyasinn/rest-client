@@ -69,12 +69,25 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
     }
 
     /**
-     * @param array<RequestInterceptorInterface> $interceptors
+     * @param iterable<RequestInterceptorInterface> $interceptors
      * @return void
      */
-    public function setInterceptors(array $interceptors): void
+    public function setInterceptors(iterable $interceptors): void
     {
         $this->interceptors = $interceptors;
+    }
+
+    public function pushInterceptor(RequestInterceptorInterface $interceptor): void
+    {
+        \array_unshift($this->interceptors, $interceptor);
+    }
+
+    /**
+     * @return iterable<RequestInterceptorInterface>
+     */
+    public function getInterceptors(): iterable
+    {
+        return $this->interceptors;
     }
 
     public function setResponseErrorHandler(ResponseErrorHandlerInterface $responseErrorHandler): void
