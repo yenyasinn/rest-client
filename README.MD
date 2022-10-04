@@ -1,8 +1,9 @@
 # RestClient
 
 RestClient is [an interface](src/RestClientInterface.php) representing the main entry point for performing REST requests.
-RestClient is a handy tool that adds a list of new features to a Psr/HttpClient (at the same time it is not intended to
-replace HttpClient):
+
+RestClient is a handy tool that adds a list of extra features to a Psr/HttpClient (at the same time it is not intended to
+replace Psr/HttpClient):
 1. Serializer/Deserialize request/response body.
 2. Intercept request (allows to modify request before sending or process a response object).
 3. Retry strategy.
