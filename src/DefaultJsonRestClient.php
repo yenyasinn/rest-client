@@ -5,6 +5,7 @@ namespace RestClient;
 use GuzzleHttp\Client;
 use Psr\Http\Client\ClientInterface;
 use RestClient\Configuration\ConfigurationInterface;
+use RestClient\HttpHeaders\MediaType;
 use RestClient\Interceptor\RequestInterceptorInterface;
 use RestClient\Serialization\Symfony\JsonSymfonySerializer;
 use RestClient\Serialization\SerializerInterface;
@@ -28,9 +29,9 @@ class DefaultJsonRestClient extends AbstractRestClient
         $this->normalizers = $normalizers;
         parent::__construct(
             $configuration,
-            $interceptors,
-            ['Content-Type' => 'application/json']
+            $interceptors
         );
+        $this->getHttpHeaders()->setContentType(MediaType::APPLICATION_JSON);
     }
 
     protected function createHttpClient(ConfigurationInterface $configuration): ClientInterface

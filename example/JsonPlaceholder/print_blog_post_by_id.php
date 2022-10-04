@@ -1,5 +1,7 @@
 <?php
 
+use RestClient\Exception\RestClientResponseException;
+
 require 'vendor/autoload.php';
 require 'Model/BlogPost.php';
 require 'Model/Comment.php';
@@ -22,6 +24,6 @@ try {
     print '----------------------------------' . "\n";
     print 'Body:   ' . "\n" . $blogPost->getBody() . "\n";
 
-} catch (\RestClient\Exception\RestClientResponseException $exception) {
+} catch (RestClientResponseException $exception) {
     var_dump($exception->getData());
 }

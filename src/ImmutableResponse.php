@@ -15,6 +15,7 @@ final class ImmutableResponse implements ResponseInterface
     private StreamInterface $body;
     private int $statusCode;
     private string $reasonPhrase;
+    private string $stringBody; // Stream can be read only once!
 
     public function __construct(string $protocolVersion, int $statusCode, string $reasonPhrase, array $headers, string $body)
     {
@@ -23,6 +24,7 @@ final class ImmutableResponse implements ResponseInterface
         $this->loweredHeaders = $this->withLowerKeys($headers);
         $this->statusCode = $statusCode;
         $this->reasonPhrase = $reasonPhrase;
+        $this->stringBody = $body;
         $this->body = new BufferStream();
         $this->body->write($body);
     }
@@ -82,6 +84,11 @@ final class ImmutableResponse implements ResponseInterface
     public function withoutHeader($name): ImmutableResponse
     {
         return $this;
+    }
+
+    public function getBodyAsString(): string
+    {
+        return $this->stringBody;
     }
 
     public function getBody(): StreamInterface

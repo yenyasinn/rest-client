@@ -1,8 +1,19 @@
 # RestClient
 
 RestClient is [an interface](src/RestClientInterface.php) representing the main entry point for performing REST requests.
+RestClient is a handy tool that adds a list of new features to a Psr/HttpClient (at the same time it is not intended to
+replace HttpClient):
+1. Serializer/Deserialize request/response body.
+2. Intercept request (allows to modify request before sending or process a response object).
+3. Retry strategy.
 
-## Examples
+## Install
+
+```shell
+composer require paveldanilin/rest-client
+```
+
+## Quick Examples
 
 ### Create a new REST client
 
@@ -104,8 +115,8 @@ Out of the box you can use following interceptors:
 * [Callable](src/Interceptor/CallableInterceptor.php)
 
 
-Did not find a right interceptor?
-To create a new one you should implement the following interface:
+Did not find a right interceptor? Do not get upset!
+It's easy to create a new one, just implement the following interface:
 
 ```php
 interface RequestInterceptorInterface

@@ -1,7 +1,7 @@
 {
     "name": "paveldanilin/rest-client",
     "description": "REST client for PHP 7.4+",
-	"keywords": ["rest-client", "json-rest-client", "interceptor", "psr-7", "psr-18"],
+	"keywords": ["rest-client", "json-rest-client", "interceptor", "psr-7", "psr-18", "php"],
     "type": "library",
     "license": "MIT",
 	"authors": [
@@ -14,7 +14,7 @@
         "psr-4": {
             "RestClient\\": "src/"
         },
-		"files": ["src/helpers.php"]
+		"files": ["src/functions.php"]
     },
 	"autoload-dev": {
 		"psr-4": {

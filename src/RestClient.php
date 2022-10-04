@@ -4,6 +4,7 @@ namespace RestClient;
 
 use RestClient\Exception\UnknownTypeException;
 use RestClient\Exception\RestClientException;
+use RestClient\HttpHeaders\HttpHeaders;
 use RestClient\Interceptor\RequestInterceptorInterface;
 use RestClient\Interceptor\StackInterceptor;
 use RestClient\Serialization\SerializerInterface;
@@ -29,7 +30,11 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
     private UriFactoryInterface $uriFactory;
     private ResponseErrorHandlerInterface $responseErrorHandler;
     private SerializerInterface $serializer;
-    private array $headers;
+    /**
+     * Default request headers.
+     * @var HttpHeaders
+     */
+    private HttpHeaders $headers;
 
     /**
      * @param HttpClientInterface $httpClient
@@ -102,7 +107,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
     public function setHeaders(array $headers): void
     {
-        $this->headers = $headers;
+        $this->headers = new HttpHeaders($headers);
     }
 
     /**
@@ -193,6 +198,11 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
     // COMMON
 
+    public function getHttpHeaders(): HttpHeaders
+    {
+        return $this->headers;
+    }
+
     /**
      * @param string $method
      * @param string $uri
@@ -273,6 +283,16 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
             ctx_response_as_list($context)
         );
 
+        if ($responseModel instanceof HttpResponseAwareInterface) {
+            $responseModel->setHttpResponse(new ImmutableResponse(
+                $response->getProtocolVersion(),
+                $response->getStatusCode(),
+                $response->getReasonPhrase(),
+                $response->getHeaders(),
+                $responseBody
+            ));
+        }
+
         // Put model to context
         $context->set(ContextInterface::RESPONSE_MODEL, $responseModel);
     }
@@ -299,10 +319,14 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
     private function createRequest(string $method, string $uri, array $uriVariables = [], array $headers = []): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $this->createUri($uri, $uriVariables));
-        $headers = \array_merge($this->headers, $headers);
+
+        // Merge default request headers with context headers
+        $headers = \array_merge($this->headers->getAll(), $headers);
+
         foreach ($headers as $headerName => $headerValues) {
             $request = $request->withHeader($headerName, $headerValues);
         }
+
         return $request;
     }
 }
