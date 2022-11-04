@@ -2,7 +2,6 @@
 
 namespace RestClient;
 
-use GuzzleHttp\Psr7\BufferStream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use RestClient\Exception\RestClientResponseException;
@@ -15,7 +14,6 @@ final class ImmutableResponse implements ResponseInterface
     private StreamInterface $body;
     private int $statusCode;
     private string $reasonPhrase;
-    private string $stringBody; // Stream can be read only once!
 
     public function __construct(string $protocolVersion, int $statusCode, string $reasonPhrase, array $headers, string $body)
     {
@@ -24,9 +22,15 @@ final class ImmutableResponse implements ResponseInterface
         $this->loweredHeaders = $this->withLowerKeys($headers);
         $this->statusCode = $statusCode;
         $this->reasonPhrase = $reasonPhrase;
-        $this->stringBody = $body;
-        $this->body = new BufferStream();
-        $this->body->write($body);
+        $this->body = new StaticStream($body);
+    }
+
+    public static function create(string $body, int $statusCode = 200, array $headers = [], string $reasonPhrase = '', string $protocolVersion = '1.1'): ImmutableResponse
+    {
+        if (empty($reasonPhrase)) {
+            $reasonPhrase = self::getDefaultReasonPhrase($statusCode);
+        }
+        return new self($protocolVersion, $statusCode, $reasonPhrase, $headers, $body);
     }
 
     public static function fromRestClientResponseException(RestClientResponseException $responseException): ResponseInterface
@@ -86,9 +90,18 @@ final class ImmutableResponse implements ResponseInterface
         return $this;
     }
 
+    /**
+     * @deprecated Please use 'getContents'.
+     * @return string
+     */
     public function getBodyAsString(): string
     {
-        return $this->stringBody;
+        return $this->getContents();
+    }
+
+    public function getContents(): string
+    {
+        return $this->body->getContents();
     }
 
     public function getBody(): StreamInterface
@@ -123,5 +136,49 @@ final class ImmutableResponse implements ResponseInterface
             $lowered[\strtolower($k)] = $v;
         }
         return $lowered;
+    }
+
+    private static function getDefaultReasonPhrase(int $statusCode): string
+    {
+        switch ($statusCode) {
+            case 100:	return 'Continue';
+            case 101:	return 'Switching Protocols';
+            case 200:	return 'OK';
+            case 201:	return 'Created';
+            case 202:	return 'Accepted';
+            case 203:	return 'Non-Authoritative Information';
+            case 204:	return 'No Content';
+            case 205:	return 'Reset Content';
+            case 206:	return 'Partial Content';
+            case 300:	return 'Multiple Choices';
+            case 301:	return 'Moved Permanently';
+            case 302:	return 'Moved Temporarily';
+            case 303:	return 'See Other';
+            case 304:	return 'Not Modified';
+            case 305:	return 'Use Proxy';
+            case 400:	return 'Bad Request';
+            case 401:	return 'Unauthorized';
+            case 402:	return 'Payment Required';
+            case 403:	return 'Forbidden';
+            case 404:	return 'Not Found';
+            case 405:	return 'Method Not Allowed';
+            case 406:	return 'Not Acceptable';
+            case 407:	return 'Proxy Authentication Required';
+            case 408:	return 'Request Time-out';
+            case 409:	return 'Conflict';
+            case 410:	return 'Gone';
+            case 411:	return 'Length Required';
+            case 412:	return 'Precondition Failed';
+            case 413:	return 'Request Entity Too Large';
+            case 414:	return 'Request-URI Too Large';
+            case 415:	return 'Unsupported Media Type';
+            case 500:	return 'Internal Server Error';
+            case 501:	return 'Not Implemented';
+            case 502:	return 'Bad Gateway';
+            case 503:	return 'Service Unavailable';
+            case 504:	return 'Gateway Time-out';
+            case 505:	return 'HTTP Version not supported';
+        }
+        return '';
     }
 }
