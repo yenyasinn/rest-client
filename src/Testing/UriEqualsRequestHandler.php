@@ -32,6 +32,6 @@ class UriEqualsRequestHandler extends RequestHandler
 
     public function canHandle(RequestInterface $request): bool
     {
-        return parent::canHandle($request) && $this->expectedUri === (string)$request->getUri();
+        return parent::canHandle($request) && $this->expectedUri === \strtolower((string)$request->getUri());
     }
 }

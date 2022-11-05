@@ -32,6 +32,6 @@ class UriMatchesRequestHandler extends RequestHandler
 
     public function canHandle(RequestInterface $request): bool
     {
-        return parent::canHandle($request) && \preg_match($this->uriPattern, (string)$request->getUri());
+        return parent::canHandle($request) && \preg_match($this->uriPattern, \strtolower((string)$request->getUri()));
     }
 }
