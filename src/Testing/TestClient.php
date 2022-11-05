@@ -1,6 +1,6 @@
 <?php
 
-namespace RestClient\Test;
+namespace RestClient\Testing;
 
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;

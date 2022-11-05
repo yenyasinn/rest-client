@@ -9,8 +9,8 @@ use RestClient\DefaultJsonRestClient;
 use RestClient\RestClient;
 use RestClient\RestClientInterface;
 use RestClient\Serialization\Symfony\JsonSymfonySerializer;
-use RestClient\Test\RequestHandler;
-use RestClient\Test\TestClient;
+use RestClient\Testing\RequestHandler;
+use RestClient\Testing\TestClient;
 use RestClient\Tests\Dto\MessageDto;
 use RestClient\Tests\Dto\OrderDto;
 use function RestClient\Helpers\asList;
@@ -44,7 +44,7 @@ class RestClientTest extends TestCase
         ];
 
         $testClient = new TestClient(
-            new RequestHandler(fn (RequestInterface $request) => '{"message": "nok"}'),
+            new RequestHandler(fn (RequestInterface $request) => 'NOK'),
             $handlers
         );
 
