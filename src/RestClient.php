@@ -53,6 +53,16 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         $this->setHeaders($headers);
     }
 
+    public function setHttpClient(HttpClientInterface $httpClient): void
+    {
+        $this->httpClient = $httpClient;
+    }
+
+    public function getHttpClient(): HttpClientInterface
+    {
+        return $this->httpClient;
+    }
+
     public function setRequestFactory(RequestFactoryInterface $requestFactory): void
     {
         $this->requestFactory = $requestFactory;
@@ -124,8 +134,8 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
 
             // Model -> string -> request, context
             $requestBody = $this->serializer->serialize(ctx_request_get_model($context));
-            $request->getBody()->write($requestBody);
             $context->set(ContextInterface::REQUEST_BODY, $requestBody);
+            $request->getBody()->write($requestBody);
         }
 
         return $this->processResponse($this->httpClient->sendRequest($request), $context);
