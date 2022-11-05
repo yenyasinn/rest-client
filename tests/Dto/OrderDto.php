@@ -4,8 +4,8 @@ namespace RestClient\Tests\Dto;
 
 class OrderDto
 {
-    private int $orderId;
-    private string $name;
+    private int $orderId = 1;
+    private string $name = '';
 
     public function getOrderId(): int
     {

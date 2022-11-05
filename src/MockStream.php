@@ -4,7 +4,7 @@ namespace RestClient;
 
 use Psr\Http\Message\StreamInterface;
 
-final class StaticStream implements StreamInterface
+final class MockStream implements StreamInterface
 {
     private string $data;
 

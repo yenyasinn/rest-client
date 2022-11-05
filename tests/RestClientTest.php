@@ -22,21 +22,25 @@ class RestClientTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         $handlers = [
-            // equal:
-            '/test/me' => '{"message": "ok"}',
-            // equal:
-            'equal:/test/1' => '{"message": "two"}',
-            // match
-            'match:/\/customer\/\d+\/orders/' => \json_encode([
-                [
-                    'order_id' => 1,
-                    'name' => 'test order'
-                ],
-                [
-                    'order_id' => 2,
-                    'name' => 'book'
+            'GET?uri=/test/message' => '{"message": "ok"}',
+            'GET?matcher=re&uri=/\/customer\/\d+\/orders/' => [
+                'json' => [
+                    [
+                        'order_id' => 1,
+                        'name' => 'test order'
+                    ],
+                    [
+                        'order_id' => 2,
+                        'name' => 'book'
+                    ]
                 ]
-            ], JSON_THROW_ON_ERROR),
+            ],
+            'POST?uri=/customer/2/orders' => [
+                'json' => [
+                    'order_id' => 2,
+                    'name' => 'car'
+                ]
+            ]
         ];
 
         $testClient = new TestClient(
@@ -54,31 +58,38 @@ class RestClientTest extends TestCase
         $this->assertEquals('application/json', $rest->getHttpHeaders()->getContentType());
     }
 
-    public function testUriEquals(): void
+    public function testGetForObject(): void
     {
         /** @var MessageDto $msg */
-        $msg = static::$restClient->getForObject('/test/me', MessageDto::class);
+        $msg = static::$restClient->getForObject('/test/message', MessageDto::class);
 
         $this->assertEquals('ok', $msg->getMessage());
     }
 
-    public function testUriEqualsExplicit(): void
-    {
-        /** @var MessageDto $msg2 */
-        $msg2 = static::$restClient->getForObject('/test/1', MessageDto::class);
-
-        $this->assertEquals('two', $msg2->getMessage());
-    }
-
-    public function testUriMatches(): void
+    public function testGetForObjectList(): void
     {
         /** @var array<OrderDto>  $orders */
         $orders = static::$restClient->getForObject('/customer/123/orders', asList(OrderDto::class));
 
         $this->assertCount(2, $orders);
+
         $this->assertEquals(1, $orders[0]->getOrderId());
         $this->assertEquals('test order', $orders[0]->getName());
+
         $this->assertEquals(2, $orders[1]->getOrderId());
         $this->assertEquals('book', $orders[1]->getName());
+    }
+
+    public function testPostForObject(): void
+    {
+        $newOrder = new OrderDto();
+        $newOrder->setOrderId(2);
+        $newOrder->setName('car');
+
+        /** @var OrderDto $order */
+        $order = static::$restClient->postForObject('/customer/2/orders', OrderDto::class, $newOrder);
+
+        $this->assertEquals(2, $order->getOrderId());
+        $this->assertEquals('car', $order->getName());
     }
 }

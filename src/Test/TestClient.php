@@ -22,7 +22,7 @@ class TestClient implements ClientInterface
     {
         $this->handlers = [];
         foreach ($handlers as $expr => $handler) {
-            if (\is_string($expr) && (\is_callable($handler) || \is_string($handler))) {
+            if (\is_string($expr) && (\is_callable($handler) || \is_string($handler) || \is_array($handler))) {
                 $this->handlers[] = $this->createHandler($expr, $handler);
             } elseif($handler instanceof RequestHandlerInterface) {
                 $this->handlers[] = $handler;
@@ -71,18 +71,36 @@ class TestClient implements ClientInterface
     {
         $expr = \strtolower($expr);
 
-        if (\strpos($expr, 'equal:') === 0) {
-            $handlerName = 'equal';
-        } elseif(\strpos($expr, 'match:') === 0) {
-            $handlerName = 'match';
-        } else {
-            $handlerName = 'equal';
+        [$method, $params] = $this->parseExpr($expr);
+
+        $uri = $params['uri'] ?? '/';
+        $matcher = $params['matcher'] ?? 'eq';
+
+        if ('re' === $matcher) {
+            return UriMatchesRequestHandler::create($method, $uri, $handler);
         }
 
-        if ('match' === $handlerName) {
-            return UriMatchesRequestHandler::create(\ltrim($expr,'match:'), $handler);
+        return UriEqualsRequestHandler::create($method, $uri, $handler);
+    }
+
+    private function parseExpr(string $expr): array
+    {
+        if (false === \strpos($expr, '?')) {
+            $expr = 'get?' . $expr;
         }
 
-        return UriEqualsRequestHandler::create(\ltrim($expr,'equal:'), $handler);
+        $methodDefPos = \strpos($expr, '?');
+        $method = \substr($expr, 0, $methodDefPos);
+        $params = [];
+        $paramsDef = \explode('&', \substr($expr, $methodDefPos + 1));
+        foreach ($paramsDef as $def) {
+            $param = \explode('=', $def);
+            $params[$param[0]] = $param[1];
+        }
+
+        return [
+            $method,
+            $params,
+        ];
     }
 }

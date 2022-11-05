@@ -4,7 +4,7 @@ namespace RestClient\Tests\Dto;
 
 class MessageDto
 {
-    private string $message;
+    private string $message = '';
 
     public function getMessage(): string
     {

@@ -22,10 +22,10 @@ final class ImmutableResponse implements ResponseInterface
         $this->loweredHeaders = $this->withLowerKeys($headers);
         $this->statusCode = $statusCode;
         $this->reasonPhrase = $reasonPhrase;
-        $this->body = new StaticStream($body);
+        $this->body = new MockStream($body);
     }
 
-    public static function create(string $body, int $statusCode = 200, array $headers = [], string $reasonPhrase = '', string $protocolVersion = '1.1'): ImmutableResponse
+    public static function create(string $body = '', int $statusCode = 200, array $headers = [], string $reasonPhrase = '', string $protocolVersion = '1.1'): ImmutableResponse
     {
         if (empty($reasonPhrase)) {
             $reasonPhrase = self::getDefaultReasonPhrase($statusCode);
