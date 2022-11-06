@@ -3,13 +3,11 @@
 namespace RestClient\Tests;
 
 use PHPStan\Testing\TestCase;
-use Psr\Http\Message\RequestInterface;
 use RestClient\Configuration\DefaultConfiguration;
 use RestClient\DefaultJsonRestClient;
 use RestClient\RestClient;
 use RestClient\RestClientInterface;
 use RestClient\Serialization\Symfony\JsonSymfonySerializer;
-use RestClient\Testing\RequestHandler;
 use RestClient\Testing\TestClient;
 use RestClient\Tests\Dto\MessageDto;
 use RestClient\Tests\Dto\OrderDto;
@@ -21,7 +19,7 @@ class RestClientTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        $handlers = [
+        $testClient = new TestClient([
             'GET?uri=/test/message' => '{"message": "ok"}',
             'GET?matcher=re&uri=/\/customer\/\d+\/orders/' => [
                 'json' => [
@@ -41,12 +39,7 @@ class RestClientTest extends TestCase
                     'name' => 'car'
                 ]
             ]
-        ];
-
-        $testClient = new TestClient(
-            new RequestHandler(fn (RequestInterface $request) => 'NOK'),
-            $handlers
-        );
+        ]);
 
         static::$restClient = new RestClient($testClient, new JsonSymfonySerializer());
     }

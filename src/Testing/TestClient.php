@@ -10,9 +10,9 @@ class TestClient implements ClientInterface
 {
     /** @var array<RequestHandlerInterface>  */
     private array $handlers;
-    private RequestHandlerInterface $defaultHandler;
+    private ?RequestHandlerInterface $defaultHandler;
 
-    public function __construct(RequestHandlerInterface $defaultHandler, array $handlers = [])
+    public function __construct(array $handlers = [], ?RequestHandlerInterface $defaultHandler = null)
     {
         $this->setDefaultHandler($defaultHandler);
         $this->setHandlers($handlers);
@@ -37,19 +37,19 @@ class TestClient implements ClientInterface
         return $this->handlers;
     }
 
-    public function getDefaultHandler(): RequestHandlerInterface
+    public function getDefaultHandler(): ?RequestHandlerInterface
     {
         return $this->defaultHandler;
     }
 
-    public function setDefaultHandler(RequestHandlerInterface $defaultHandler): void
+    public function setDefaultHandler(?RequestHandlerInterface $defaultHandler): void
     {
         $this->defaultHandler = $defaultHandler;
     }
 
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
-        return ($this->findHandler($request) ?? $this->defaultHandler)->handle($request);
+        return ($this->findHandler($request) ?? $this->defaultHandler ?? $this->createEmptyHandler())->handle($request);
     }
 
     private function findHandler(RequestInterface $request): ?RequestHandlerInterface
@@ -60,6 +60,11 @@ class TestClient implements ClientInterface
             }
         }
         return null;
+    }
+
+    private function createEmptyHandler(): RequestHandlerInterface
+    {
+        return new RequestHandler(fn() => '');
     }
 
     /**
