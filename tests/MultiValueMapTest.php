@@ -2,7 +2,7 @@
 
 namespace RestClient\Tests;
 
-use PHPStan\Testing\TestCase;
+use PHPUnit\Framework\TestCase;
 use RestClient\Util\MultiValueMap;
 
 class MultiValueMapTest extends TestCase

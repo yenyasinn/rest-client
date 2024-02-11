@@ -3,6 +3,8 @@
 namespace RestClient\Util;
 
 
+use ReturnTypeWillChange;
+
 class MultiValueMap implements \ArrayAccess, \IteratorAggregate
 {
     /**
@@ -205,7 +207,7 @@ class MultiValueMap implements \ArrayAccess, \IteratorAggregate
         return $this->caseInsensitive;
     }
 
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         // CaseInsensitive
         if ($this->isCaseInsensitive()) {
@@ -233,11 +235,8 @@ class MultiValueMap implements \ArrayAccess, \IteratorAggregate
         return $this->contains($offset);
     }
 
-    /**
-     * @param string|int $offset
-     * @return mixed|string|string[]|null
-     */
-    public function offsetGet($offset)
+
+    #[ReturnTypeWillChange] public function offsetGet($offset)
     {
         $originalKey = $this->keys[$this->normalizeKey($offset)] ?? null;
         if (null === $originalKey) {

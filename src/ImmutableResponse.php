@@ -64,7 +64,7 @@ final class ImmutableResponse implements ResponseInterface
         return \array_key_exists(\strtolower($name), $this->loweredHeaders);
     }
 
-    public function getHeader($name)
+    public function getHeader(string $name): array
     {
         return $this->loweredHeaders[\strtolower($name)] ?? [];
     }

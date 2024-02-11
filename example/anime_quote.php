@@ -5,7 +5,7 @@ use RestClient\HttpResponseAwareInterface;
 
 require 'vendor/autoload.php';
 
-// We are going to call a public API: 'https://animechan.vercel.app/api/random' which returns a random quote as a JSON document.
+// We are going to call a public API: 'https://animechan.xyz/api/random' which returns a random quote as a JSON document.
 // Example:
 // {
 //	anime: 'Shiki',
@@ -67,7 +67,7 @@ class AnimeQuote implements HttpResponseAwareInterface
 
 // PSR-18 HTTP client
 $httpClient = new GuzzleHttp\Client([
-    'base_uri' => 'https://animechan.vercel.app',
+    'base_uri' => 'https://animechan.xyz',
 ]);
 
 // Serializer (helps us to convert JSON -> PHP class)

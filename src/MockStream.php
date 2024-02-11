@@ -13,7 +13,7 @@ final class MockStream implements StreamInterface
         $this->data = $data;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->data;
     }
@@ -23,6 +23,9 @@ final class MockStream implements StreamInterface
         // TODO: Not implemented
     }
 
+    /**
+     * @return resource|null Underlying PHP stream, if any
+     */
     public function detach()
     {
         return null;
@@ -73,7 +76,7 @@ final class MockStream implements StreamInterface
         return false;
     }
 
-    public function read($length)
+    public function read($length): string
     {
         throw new \RuntimeException('Not implemented');
     }
@@ -83,7 +86,7 @@ final class MockStream implements StreamInterface
         return $this->data;
     }
 
-    public function getMetadata($key = null)
+    public function getMetadata($key = null): null|string
     {
         return null;
     }

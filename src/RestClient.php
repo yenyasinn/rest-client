@@ -158,7 +158,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('GET', $uri, $uriVariables, $headers));
     }
 
-    public function getForObject(string $uri, string $responseType, array $uriVariables = [], array $headers = [])
+    public function getForObject(string $uri, string $responseType, array $uriVariables = [], array $headers = []): array|null|object
     {
         return $this->doExchange('GET', $uri, $responseType, null, $uriVariables, $headers);
     }
@@ -170,7 +170,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('POST', $uri, $uriVariables, $headers));
     }
 
-    public function postForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
+    public function postForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array|null|object
     {
         return $this->doExchange('POST', $uri, $responseType, $body, $uriVariables, $headers);
     }
@@ -182,7 +182,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('PUT', $uri, $uriVariables, $headers));
     }
 
-    public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
+    public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array|null|object
     {
         return $this->doExchange('PUT', $uri, $responseType, $body, $uriVariables, $headers);
     }
@@ -194,7 +194,7 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         return $this->exchange($this->createRequest('PATCH', $uri, $uriVariables, $headers));
     }
 
-    public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
+    public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): array|null|object
     {
         return $this->doExchange('PATCH', $uri, $responseType, $body, $uriVariables, $headers);
     }
@@ -222,13 +222,13 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
      * @param array $headers
      * @return array|object|null
      */
-    private function doExchange(string $method, string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = [])
+    private function doExchange(string $method, string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): object|array|null
     {
         // Normalize a response type.
         // Response types:
         // A single object  :    'App\Model\User'
         // A list of objects:    'App\Model\User[]'
-        $responseAsList = \substr($responseType, -2) === '[]';
+        $responseAsList = str_ends_with($responseType, '[]');
         if ($responseAsList) {
             $responseType = \rtrim($responseType, '[]');
         }
@@ -313,7 +313,8 @@ class RestClient implements RestClientInterface, RequestInterceptorInterface
         // /api/users/:id  + uriVariables['id'] => /api/users/1
         foreach($uriVariables as $key => $value){
             $placeholder = ':' . \strtolower($key);
-            if (\strpos($uri, $placeholder) !== false) {
+            if (str_contains($uri, $placeholder)) {
+                $value = is_string($value) ? $value : (string)$value;
                 $uri = str_replace($placeholder, $value, $uri);
                 unset($uriVariables[$key]);
             }

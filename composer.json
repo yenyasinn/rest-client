@@ -22,17 +22,17 @@
 		}
 	},
     "require": {
-        "php": ">=7.4.0",
+        "php": ">=8.1",
         "ext-json": "*",
         "psr/http-client": "1.0.*",
         "psr/log": "1.1.*",
         "guzzlehttp/guzzle": "6.*|7.*",
-        "symfony/serializer": "4.4.*|5.4.*",
-        "symfony/property-access": "4.4.*|5.4.*"
+        "symfony/serializer": "6.4.*",
+        "symfony/property-access": "6.4.*"
     },
     "require-dev": {
-        "phpstan/phpstan": "0.12.99",
-		"phpunit/phpunit": "9.5.*"
+        "phpstan/phpstan": "1.10.*",
+		"phpunit/phpunit": "10.5.*"
 	},
     "scripts": {
         "test": [

@@ -27,7 +27,7 @@ interface RestClientInterface
      * @param string[][] $headers
      * @return array|object|null
      */
-    public function getForObject(string $uri, string $responseType, array $uriVariables = [], array $headers = []);
+    public function getForObject(string $uri, string $responseType, array $uriVariables = [], array $headers = []): object|array|null;
 
 
     // POST
@@ -48,7 +48,7 @@ interface RestClientInterface
      * @param array $headers
      * @return array|object|null
      */
-    public function postForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []);
+    public function postForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): object|array|null;
 
 
     // PUT
@@ -69,7 +69,7 @@ interface RestClientInterface
      * @param string[][] $headers
      * @return array|object|null
      */
-    public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []);
+    public function putForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): object|array|null;
 
 
     // PATCH
@@ -90,7 +90,7 @@ interface RestClientInterface
      * @param string[][] $headers
      * @return array|object|null
      */
-    public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []);
+    public function patchForObject(string $uri, string $responseType, ?object $body = null, array $uriVariables = [], array $headers = []): object|array|null;
 
 
     // DELETE
